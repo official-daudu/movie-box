@@ -68,7 +68,7 @@ const MovieSearchScreen = () => {
 
       {/* Header */}
       <View className="w-full h-[14%] bg-netflix-red">
-        <View className="flex-row items-center justify-between px-4 py-3 mt-[10%]">
+        <View className="flex-row items-center justify-between px-4 py-3 mt-[8%]">
           <View className="flex-row items-center gap-2">
             <MaterialIcons name="local-movies" size={24} color="white" />
             <Text className="text-white font-bold text-lg">Movie-Box</Text>
@@ -85,7 +85,7 @@ const MovieSearchScreen = () => {
       </View>
 
       {/* Search */}
-      <View className="px-4 -mt-7">
+      <View className="px-4 -mt-5">
         <HomeSearchInput
           placeholder="Search for a movie"
           value={searchText}

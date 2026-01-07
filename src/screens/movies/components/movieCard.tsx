@@ -2,6 +2,7 @@
 import { Text } from "@/components/base";
 import { useWatchlistStore } from "@/store/watchlist.store";
 import { Movie } from "@/types/movies";
+import { AntDesign } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { memo, useCallback, useMemo } from "react";
 import { Pressable, View } from "react-native";
@@ -31,7 +32,7 @@ const MovieCard = ({ movie }: Props) => {
   }, [isSaved, movie, addMovie, removeMovie]);
 
   return (
-    <View className="flex-row mb-4">
+    <View className="flex-row mb-4 p-1 ">
       <View className="w-20 h-28 bg-gray-300 rounded-md overflow-hidden">
         <Image
           source={{
@@ -50,9 +51,22 @@ const MovieCard = ({ movie }: Props) => {
       </View>
 
       <View className="flex-1 ml-3 gap-3">
-        <Text size="lg" className="font-semibold text-white">
-          {movie.Title}
-        </Text>
+        <View className="flex-row justify-between items-center">
+          <Text
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            className="font-semibold text-white w-[250px]"
+          >
+            {movie.Title}
+          </Text>
+
+          <AntDesign
+            name="heart"
+            size={20}
+            color={isSaved ? "#E50914" : "#B3B3B3"}
+          />
+        </View>
+
         <Text className="text-netflix-gray">{movie.Year}</Text>
 
         <Pressable onPress={handlePress}>

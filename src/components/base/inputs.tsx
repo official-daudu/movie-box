@@ -109,7 +109,7 @@ export function SearchInput(props: InputProps) {
 
 export function HomeSearchInput({ rightIcon, ...props }: InputProps) {
   return (
-    <View className="flex-row items-center gap-2 h-14 bg-white border rounded-lg px-4">
+    <View className="flex-row items-center gap-2 h-14 bg-white border border-white rounded-lg px-4">
       <MaterialIcons name="search" size={22} color="#667185" />
       <TextInput
         className="flex-1 py-3 text-[#667185]"

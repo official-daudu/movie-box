@@ -1,4 +1,3 @@
-// components/MovieCard.tsx
 import { Text } from "@/components/base";
 import { useWatchlistStore } from "@/store/watchlist.store";
 import { Movie } from "@/types/movies";

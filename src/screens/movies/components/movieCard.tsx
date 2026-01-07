@@ -66,7 +66,7 @@ const MovieCard = ({ movie }: Props) => {
           />
         </View>
 
-        <Text className="text-netflix-gray">{movie.Year}</Text>
+        <Text className="text-netflix-gray">Year: {movie.Year}</Text>
 
         <Pressable onPress={handlePress}>
           <Text className="text-blue-500">

@@ -31,10 +31,14 @@ function errorLogger(context = false) {
 // errorLogger with context enabled
 errorLogger();
 
-export async function fetchMovies(query: string): Promise<Movie[]> {
+export async function fetchMovies(
+  query: string,
+  signal?: AbortSignal
+): Promise<Movie[]> {
   if (!query.trim()) return [];
-  console.log({ API_KEY });
+
   const res = await axios.get(BASE_URL, {
+    signal,
     params: {
       apikey: API_KEY,
       s: query,
@@ -43,7 +47,6 @@ export async function fetchMovies(query: string): Promise<Movie[]> {
   });
 
   if (res.data.Response === "False") {
-    console.warn("OMDb API error:", res.data.Error); // This will show "Invalid API key!" etc.
     return [];
   }
 

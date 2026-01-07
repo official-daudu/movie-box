@@ -1,5 +1,6 @@
 import { Button } from "@/components/base/buttons";
 import { HomeSearchInput } from "@/components/base/inputs";
+import { useDebouncedValue } from "@/hooks/useDebounceValue";
 import { fetchMovies } from "@/lib/api";
 import { Movie } from "@/types/movies";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -7,8 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import debounce from "lodash.debounce";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,34 +19,33 @@ import {
 import { EmptyState } from "./components/emptyState";
 import MovieCard from "./components/movieCard";
 
-export default function MovieSearchScreen() {
+const MovieSearchScreen = () => {
   const router = useRouter();
-  const [query, setQuery] = useState("marvel");
+  const [searchText, setSearchText] = useState("marvel");
 
-  const [searchInput, setSearchInput] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
+  // Debounced value
+  const debouncedSearch = useDebouncedValue(searchText, 600);
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["movies", query],
-    queryFn: () => fetchMovies(query),
-    // enabled: false,
+  const {
+    data: movies = [],
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["movies", debouncedSearch],
+    queryFn: ({ signal }) => fetchMovies(debouncedSearch, signal),
+    enabled: debouncedSearch.trim().length > 0,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    placeholderData: (previousData) => previousData,
+    select: (data) => {
+      // Deduplicate safely
+      const map = new Map<string, Movie>();
+      data.forEach((movie) => map.set(movie.imdbID, movie));
+      return Array.from(map.values());
+    },
   });
 
-  const movies = React.useMemo(() => {
-    if (!data) return [];
-
-    const map = new Map<string, Movie>();
-    data.forEach((movie: Movie) => {
-      map.set(movie.imdbID, movie);
-    });
-
-    return Array.from(map.values());
-  }, [data]);
-
-  console.log("data:", data);
-  /**
-   * useCallback → avoids re-creating on each render
-   */
   const renderItem = useCallback(
     ({ item }: { item: Movie }) => <MovieCard movie={item} />,
     []
@@ -54,96 +53,111 @@ export default function MovieSearchScreen() {
 
   const keyExtractor = useCallback((item: Movie) => item.imdbID, []);
 
-  /**
-   * Debounced setter
-   */
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((text: string) => {
-        setQuery(text);
-        refetch();
-      }, 600),
-    [refetch]
-  );
-
-  /**
-   * Cleanup debounce on unmount
-   */
-  React.useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
-
-  if (isLoading) return <ActivityIndicator />;
+  // Initial loading screen only
+  if (isLoading && movies.length === 0) {
+    return (
+      <View className="flex-1 justify-center items-center bg-netflix-black">
+        <ActivityIndicator size="large" color="#E50914" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-netflix-black">
       <StatusBar style="light" />
-      {/* Header / Escrow */}
+
+      {/* Header */}
       <View className="w-full h-[14%] bg-netflix-red">
-        <View
-          className="
-      flex-row items-center justify-between
-      px-4 py-3
-      mt-[10%]
-      w-full
-      gap-2
-    "
-        >
+        <View className="flex-row items-center justify-between px-4 py-3 mt-[10%]">
           <View className="flex-row items-center gap-2">
             <MaterialIcons name="local-movies" size={24} color="white" />
             <Text className="text-white font-bold text-lg">Movie-Box</Text>
           </View>
+
           <Button
             onPress={() => router.push("/(app)/watch-list")}
             type="scarletOutline"
             rounded="pill"
-            className=""
           >
             Watchlist
           </Button>
         </View>
       </View>
 
+      {/* Search */}
       <View className="px-4 -mt-7">
         <HomeSearchInput
           placeholder="Search for a movie"
-          onChangeText={debouncedSearch}
+          value={searchText}
+          onChangeText={setSearchText}
         />
       </View>
 
-      <View className="flex-1 mt-5 mx-2">
+      {/* Loading indicator while searching */}
+      {isFetching && (
+        <View className="py-2">
+          <ActivityIndicator size="small" color="#E50914" />
+        </View>
+      )}
+
+      {/* Results */}
+      <View className="flex-1 mt-3 mx-2">
         <FlatList
           data={movies}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews
           refreshControl={
             <RefreshControl
               colors={["#E50914"]}
-              refreshing={isLoading}
+              refreshing={isFetching}
               onRefresh={refetch}
             />
           }
-          refreshing={isLoading}
-          ListEmptyComponent={
-            <EmptyState
-              title={"No Movies Found"}
-              description={"Try searching for a different movie."}
-              illustration={
-                <Image
-                  source={require("@/assets/images/emptyBag.png")}
-                  style={{
-                    width: 150,
-                    height: 150,
-                  }}
+          ListEmptyComponent={() => {
+            if (isFetching) return null;
+
+            if (!debouncedSearch) {
+              return (
+                <EmptyState
+                  title="Search for a movie"
+                  description="Start typing to discover movies."
                 />
-              }
-            />
-          }
+              );
+            }
+
+            if (isError) {
+              return (
+                <EmptyState
+                  title="Something went wrong"
+                  description="Please try again."
+                  actionLabel="Retry"
+                  onAction={refetch}
+                />
+              );
+            }
+
+            return (
+              <EmptyState
+                title="No movies found"
+                description="Try a different search term."
+                illustration={
+                  <Image
+                    source={require("@/assets/images/emptyBag.png")}
+                    style={{ width: 150, height: 150 }}
+                  />
+                }
+              />
+            );
+          }}
           showsVerticalScrollIndicator={false}
         />
       </View>
     </View>
   );
-}
+};
+
+export default MovieSearchScreen;

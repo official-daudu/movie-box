@@ -7,7 +7,7 @@ type SafeAreaProps = React.ComponentProps<typeof SafeAreaView> & {
 };
 
 export const SafeArea = React.forwardRef<
-  React.ElementRef<typeof SafeAreaView>,
+  React.ComponentRef<typeof SafeAreaView>,
   SafeAreaProps
 >(({ keyboardDismiss, className, ...props }, ref) => {
   const Content = (

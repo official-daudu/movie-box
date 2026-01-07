@@ -1,60 +1,51 @@
-import { Button } from "@/components/base/buttons";
 import { SafeArea } from "@/components/base/safeArea";
+import { PageHeader } from "@/components/inc/PageHeader";
 import { useWatchlistStore } from "@/store/watchlist.store";
-import { AntDesign } from "@expo/vector-icons";
+import { Movie } from "@/types/movies";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useCallback } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
 import { EmptyState } from "./components/emptyState";
 import MovieCard from "./components/movieCard";
 
-export default function WatchlistScreen() {
+const WatchlistScreen = () => {
   const router = useRouter();
   const movies = useWatchlistStore((s) => s.movies);
   const hydrated = useWatchlistStore.persist.hasHydrated();
 
-  if (!hydrated) {
-    return <ActivityIndicator className="mt-10" />;
-  }
+  const renderItem = useCallback(
+    ({ item }: { item: Movie }) => <MovieCard movie={item} />,
+    []
+  );
 
-  //   if (movies.length === 0) {
-  //     return <EmptyState message="No movies saved yet 🎬" />;
-  //   }
+  if (!hydrated) {
+    return (
+      <View className="flex-1 justify-center items-center bg-netflix-black">
+        <ActivityIndicator size="large" color="#E50914" />
+      </View>
+    );
+  }
 
   return (
     <SafeArea>
       <StatusBar style="light" />
-      <View className="w-full h-12  flex-row items-center px-3">
-        <Button
-          rounded="pill"
-          type={"ghost"}
-          onPress={() => router.back()}
-          icon={<AntDesign name="arrow-left" size={24} color={"#FFFFFF"} />}
-        />
-      </View>
 
+      {/* Header */}
+      <PageHeader name="Watch-list" backButton={true} variant="dark" />
+
+      {/* List */}
       <View className="flex-1 mt-5 mx-2">
         <FlatList
           contentContainerStyle={{ padding: 16 }}
           data={movies}
           keyExtractor={(item) => item.imdbID}
-          renderItem={({ item }) => <MovieCard movie={item} />}
-          ListEmptyComponent={
-            <EmptyState
-              title={"Your watch-list is empty"}
-              description={"Add movies to your watch-list to see them here."}
-              illustration={
-                <Image
-                  source={require("@/assets/images/emptyBag.png")}
-                  style={{
-                    width: 150,
-                    height: 150,
-                  }}
-                />
-              }
-            />
-          }
+          renderItem={renderItem}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => (
             <View
@@ -67,8 +58,24 @@ export default function WatchlistScreen() {
               }}
             />
           )}
+          ListEmptyComponent={
+            <EmptyState
+              title="Your watch-list is empty"
+              description="Add movies to your watch-list to see them here."
+              actionLabel="Browse movies"
+              onAction={() => router.replace("/(app)")}
+              illustration={
+                <Image
+                  source={require("@/assets/images/emptyBag.png")}
+                  style={{ width: 150, height: 150 }}
+                />
+              }
+            />
+          }
         />
       </View>
     </SafeArea>
   );
-}
+};
+
+export default WatchlistScreen;

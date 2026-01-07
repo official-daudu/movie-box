@@ -29,7 +29,7 @@ export function PageHeader({
   return (
     <View
       className={[
-        "relative flex-row items-center justify-center bg-white `h-[${52}px]`",
+        "relative flex-row items-center justify-center bg-netflix-black `h-[${52}px]`",
         `h-[${52}px]`,
         bare ? "px-0" : "px-4",
       ].join(" ")}

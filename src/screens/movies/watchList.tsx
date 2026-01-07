@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
-import { EmptyState } from "./components/emptyState";
+import EmptyState from "./components/emptyState";
 import MovieCard from "./components/movieCard";
 
 const WatchlistScreen = () => {

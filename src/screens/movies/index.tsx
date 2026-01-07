@@ -16,7 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { EmptyState } from "./components/emptyState";
+import EmptyState from "./components/emptyState";
 import MovieCard from "./components/movieCard";
 
 const MovieSearchScreen = () => {

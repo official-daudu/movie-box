@@ -1,4 +1,5 @@
 import type React from "react";
+import { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 interface EmptyStateProps {
@@ -11,7 +12,7 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
+const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   illustration,
@@ -55,3 +56,5 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     </View>
   );
 };
+
+export default memo(EmptyState);

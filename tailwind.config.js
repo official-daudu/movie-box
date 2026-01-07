@@ -14,7 +14,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        body: ["Avenir", "System"],
+        body: ["inter", "System"],
       },
     },
   },
